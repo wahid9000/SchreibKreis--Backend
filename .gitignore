@@ -1,0 +1,26 @@
+# Dependencies
+node_modules
+/generated/prisma
+
+# Local Environment Variables
+.env
+.env.local
+.env.*.local
+
+# AI & IDE Tooling
+.agents/
+.claude/
+.windsurf/
+.vscode/
+
+# Build Outputs & Caches
+dist/
+build/
+.next/
+*.tsbuildinfo
+
+# Logs & System Files
+*.log
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
