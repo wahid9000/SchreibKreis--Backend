@@ -34,11 +34,19 @@ export const auth = betterAuth({
     requireEmailVerification: true,
   },
   emailVerification: {
-    sendVerificationEmail: async ({ user, url }) => {
+    sendVerificationEmail: async ({ user, token }) => {
+      const url = `${process.env.APP_URL}/verify-email?token=${token}`;
       await emailService.sendVerificationEmail({
         to: user.email,
         url,
         appName,
+      });
+    },
+    afterEmailVerification: async (user) => {
+      await emailService.sendWelcomeEmail({
+        to: user.email,
+        appName,
+        firstName: user.name?.split(" ")[0],
       });
     },
   },
