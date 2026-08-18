@@ -28,6 +28,7 @@ export type SendWelcomeEmailOptions = {
 };
 
 export const emailService = {
+
   async sendVerificationEmail({
     to,
     url,

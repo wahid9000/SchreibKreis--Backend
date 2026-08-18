@@ -36,18 +36,26 @@ export const auth = betterAuth({
   emailVerification: {
     sendVerificationEmail: async ({ user, token }) => {
       const url = `${process.env.APP_URL}/verify-email?token=${token}`;
-      await emailService.sendVerificationEmail({
-        to: user.email,
-        url,
-        appName,
-      });
+      try {
+        await emailService.sendVerificationEmail({
+          to: user.email,
+          url,
+          appName,
+        });
+      } catch (error) {
+        console.error("Error sending verification email:", error);
+      }
     },
     afterEmailVerification: async (user) => {
-      await emailService.sendWelcomeEmail({
-        to: user.email,
-        appName,
-        firstName: user.name?.split(" ")[0],
-      });
+      try {
+        await emailService.sendWelcomeEmail({
+          to: user.email,
+          appName,
+          firstName: user.name?.split(" ")[0],
+        });
+      } catch (error) {
+        console.error("Error sending welcome email:", error);
+      }
     },
   },
 });
