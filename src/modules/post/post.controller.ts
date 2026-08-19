@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { postService } from "./post.service";
 
 const createPost = async (req: Request, res: Response) => {
-  const authorId = "1"; // Assuming you have user authentication and the user ID is available in req.user
+  const authorId = req.user!.id;
   const { title, content, thumbnail, isFeatured, status, tags } = req.body;
 
   const result = await postService.createPost({
