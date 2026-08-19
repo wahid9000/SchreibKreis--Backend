@@ -13,10 +13,6 @@ const postSchema = z.object({
     .trim()
     .min(1, "Content cannot be empty")
     .max(10000, "Content must be 10000 characters or less"),
-  authorId: z
-    .string({ message: "authorId is required and must be a string" })
-    .trim()
-    .min(1, "authorId cannot be empty"),
   thumbnail: z
     .string()
     .trim()
