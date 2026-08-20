@@ -1,8 +1,8 @@
 import express from "express";
 import { postController } from "./post.controller";
 import { catchAsync } from "../../middleware/errorHandler";
-import validatePost from "../../middleware/validatePost";
 import { authPermission } from "../../middleware/authPermission";
+import { validatePost, validatePostQuery } from "./post.validator";
 
 const router = express.Router();
 
@@ -15,6 +15,7 @@ router.post(
 router.get(
   "/",
   authPermission("ADMIN", "USER"),
+  validatePostQuery,
   catchAsync(postController.getPosts),
 );
 

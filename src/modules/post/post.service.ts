@@ -27,8 +27,65 @@ const createPost = async (data: CreatePostInput) => {
   return result;
 };
 
-const getPosts = async () => {
-  const result = await prisma.post.findMany();
+const getPosts = async ({
+  search,
+  tags,
+  isFeatured,
+  status,
+}: {
+  search?: string | undefined;
+  tags?: string[] | [];
+  isFeatured?: boolean | undefined;
+  status?: "DRAFT" | "PUBLISHED" | "ARCHIVED" | undefined;
+}) => {
+  const andConditions: Prisma.PostWhereInput[] = [];
+
+  if (search) {
+    andConditions.push({
+      OR: [
+        {
+          title: {
+            contains: search as string,
+            mode: "insensitive",
+          },
+        },
+        {
+          content: {
+            contains: search as string,
+            mode: "insensitive",
+          },
+        },
+        {
+          tags: {
+            has: search as string,
+          },
+        },
+      ],
+    });
+  }
+
+  if (tags && tags.length > 0) {
+    andConditions.push({
+      tags: {
+        hasEvery: tags as string[],
+      },
+    });
+  }
+
+  if (isFeatured !== undefined) {
+    andConditions.push({ isFeatured });
+  }
+
+  if (status) {
+    andConditions.push({ status });
+  }
+
+  const result = await prisma.post.findMany({
+    where: {
+      AND: andConditions,
+    },
+  });
+
   return result;
 };
 

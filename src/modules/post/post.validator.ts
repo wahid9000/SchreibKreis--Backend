@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
-import { createAppError } from "../utils/AppError";
+import { createAppError } from "../../utils/AppError";
 
 const postSchema = z.object({
   title: z
@@ -33,7 +33,18 @@ const postSchema = z.object({
     .default([]),
 });
 
-const validatePost = (req: Request, res: Response, next: NextFunction) => {
+const postQuerySchema = z.object({
+  search: z.string().trim().optional(),
+  tags: z.string().optional(),
+  isFeatured: z.enum(["true", "false"]).optional(),
+  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
+});
+
+export const validatePost = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const parsed = postSchema.parse(req.body);
     req.body = parsed;
@@ -53,4 +64,16 @@ const validatePost = (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export default validatePost;
+export const validatePostQuery = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    postQuerySchema.parse(req.query);
+    next();
+  } catch (error: any) {
+    const issue = error?.issues?.[0];
+    next(createAppError(400, issue?.message || "Invalid post query"));
+  }
+};
