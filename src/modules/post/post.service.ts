@@ -32,11 +32,21 @@ const getPosts = async ({
   tags,
   isFeatured,
   status,
+  cursor,
+  page = 1,
+  limit = 10,
+  sortBy = "createdAt",
+  sortOrder = "desc",
 }: {
   search?: string | undefined;
   tags?: string[] | [];
   isFeatured?: boolean | undefined;
   status?: "DRAFT" | "PUBLISHED" | "ARCHIVED" | undefined;
+  cursor?: string | undefined;
+  page?: number | undefined;
+  limit?: number | undefined;
+  sortBy?: "createdAt" | "title" | "views" | undefined;
+  sortOrder?: "asc" | "desc" | undefined;
 }) => {
   const andConditions: Prisma.PostWhereInput[] = [];
 
@@ -80,13 +90,35 @@ const getPosts = async ({
     andConditions.push({ status });
   }
 
+  const orderBy: Prisma.PostOrderByWithRelationInput[] = [
+    sortBy && sortOrder
+      ? { [sortBy as keyof Prisma.PostOrderByWithRelationInput]: sortOrder }
+      : { createdAt: "desc" },
+    { id: sortOrder ?? "desc" },
+  ];
+
   const result = await prisma.post.findMany({
     where: {
       AND: andConditions,
     },
+    orderBy,
+    ...(cursor
+      ? { cursor: { id: cursor }, skip: 1 }
+      : { skip: (page - 1) * limit }),
+    take: limit + 1,
   });
 
-  return result;
+  const hasNextPage = result.length > limit;
+  const posts = hasNextPage ? result.slice(0, limit) : result;
+  const nextCursor = hasNextPage ? (posts[posts.length - 1]?.id ?? null) : null;
+
+  return {
+    posts,
+    pagination: {
+      hasNextPage,
+      nextCursor,
+    },
+  };
 };
 
 export const postService = {

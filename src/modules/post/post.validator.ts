@@ -38,6 +38,21 @@ const postQuerySchema = z.object({
   tags: z.string().optional(),
   isFeatured: z.enum(["true", "false"]).optional(),
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
+  cursor: z.string().trim().min(1).optional(),
+  page: z
+    .string()
+    .regex(/^\d+$/, "Page must be a positive integer")
+    .transform(Number)
+    .pipe(z.number().int().min(1, "Page must be at least 1"))
+    .optional(),
+  limit: z
+    .string()
+    .regex(/^\d+$/, "Limit must be a positive integer")
+    .transform(Number)
+    .pipe(z.number().int().min(1).max(50, "Limit cannot exceed 50"))
+    .optional(),
+  sortBy: z.enum(["createdAt", "title", "views"]).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
 });
 
 export const validatePost = (
