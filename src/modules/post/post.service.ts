@@ -97,16 +97,21 @@ const getPosts = async ({
     { id: sortOrder ?? "desc" },
   ];
 
-  const result = await prisma.post.findMany({
-    where: {
-      AND: andConditions,
-    },
-    orderBy,
-    ...(cursor
-      ? { cursor: { id: cursor }, skip: 1 }
-      : { skip: (page - 1) * limit }),
-    take: limit + 1,
-  });
+  const where = {
+    AND: andConditions,
+  };
+
+  const [result, totalItems] = await Promise.all([
+    prisma.post.findMany({
+      where,
+      orderBy,
+      ...(cursor
+        ? { cursor: { id: cursor }, skip: 1 }
+        : { skip: (page - 1) * limit }),
+      take: limit + 1,
+    }),
+    prisma.post.count({ where }),
+  ]);
 
   const hasNextPage = result.length > limit;
   const posts = hasNextPage ? result.slice(0, limit) : result;
@@ -115,8 +120,16 @@ const getPosts = async ({
   return {
     posts,
     pagination: {
+      page: cursor ? null : page,
+      limit,
+      returnedCount: posts.length,
+      totalItems,
+      totalPages: Math.ceil(totalItems / limit),
+      currentCursor: cursor ?? null,
       hasNextPage,
       nextCursor,
+      sortBy,
+      sortOrder,
     },
   };
 };
