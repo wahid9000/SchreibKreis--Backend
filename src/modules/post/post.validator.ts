@@ -55,6 +55,10 @@ const postQuerySchema = z.object({
   sortOrder: z.enum(["asc", "desc"]).optional(),
 });
 
+const postIdSchema = z.object({
+  id: z.string().uuid("Invalid post ID"),
+});
+
 export const validatePost = (
   req: Request,
   res: Response,
@@ -90,5 +94,20 @@ export const validatePostQuery = (
   } catch (error: any) {
     const issue = error?.issues?.[0];
     next(createAppError(400, issue?.message || "Invalid post query"));
+  }
+};
+
+export const validatePostId = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const parsed = postIdSchema.parse(req.params);
+    req.params.id = parsed.id;
+    next();
+  } catch (error: any) {
+    const issue = error?.issues?.[0];
+    next(createAppError(400, issue?.message || "Invalid post ID"));
   }
 };

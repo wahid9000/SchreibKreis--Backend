@@ -67,7 +67,20 @@ const getPosts = async (req: Request, res: Response) => {
   });
 };
 
+const getPostById = async (req: Request, res: Response) => {
+  const postId = req.params.id as string;
+  const post = await postService.getPostById(postId);
+
+  res.status(200).json({
+    success: true,
+    status: "success",
+    statusCode: 200,
+    data: post,
+  });
+};
+
 export const postController = {
   createPost,
   getPosts,
+  getPostById,
 };

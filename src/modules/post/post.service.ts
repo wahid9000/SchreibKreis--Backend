@@ -1,5 +1,6 @@
 import { Prisma } from "../../../prisma/generated/prisma/client";
 import { prisma } from "../../lib/prisma";
+import { createAppError } from "../../utils/AppError";
 
 type CreatePostInput = {
   title: string;
@@ -134,7 +135,22 @@ const getPosts = async ({
   };
 };
 
+const getPostById = async (postId: string) => {
+  const post = await prisma.post.findFirst({
+    where: {
+      id: postId,
+    },
+  });
+
+  if (!post) {
+    throw createAppError(404, "Post not found");
+  }
+
+  return post;
+};
+
 export const postService = {
   createPost,
   getPosts,
+  getPostById,
 };
