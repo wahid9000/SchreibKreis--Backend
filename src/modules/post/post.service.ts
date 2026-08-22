@@ -137,7 +137,7 @@ const getPosts = async ({
 };
 
 const getPostById = async (postId: string) => {
-  const post = await prisma.post.findFirst({
+  const post = await prisma.post.findUnique({
     where: {
       id: postId,
     },
@@ -146,6 +146,13 @@ const getPostById = async (postId: string) => {
   if (!post) {
     throw createAppError(404, "Post not found");
   }
+
+  prisma.post
+    .update({
+      where: { id: postId },
+      data: { views: { increment: 1 } },
+    })
+    .catch((err) => console.error("Failed to increment views", err));
 
   return post;
 };
