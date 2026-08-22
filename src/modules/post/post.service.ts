@@ -1,5 +1,5 @@
 import { is } from "zod/locales";
-import { Prisma } from "../../../prisma/generated/prisma/client";
+import { CommentStatus, Prisma } from "../../../prisma/generated/prisma/client";
 import { prisma } from "../../lib/prisma";
 import { createAppError } from "../../utils/AppError";
 
@@ -140,6 +140,17 @@ const getPostById = async (postId: string) => {
   const post = await prisma.post.findUnique({
     where: {
       id: postId,
+    },
+    include: {
+      comments: {
+        where: { parentId: null, status: "APPROVED" as CommentStatus },
+        orderBy: { createdAt: "asc" },  
+        include: {
+          replies: {
+            where: { parentId: { not: null }, status: "APPROVED" as CommentStatus },
+          }
+        }
+      }
     },
   });
 
