@@ -59,6 +59,34 @@ const postIdSchema = z.object({
   id: z.string().uuid("Invalid post ID"),
 });
 
+const updatePostSchema = z
+  .object({
+    title: z
+      .string({ message: "Title must be a string" })
+      .trim()
+      .min(1, "Title cannot be empty")
+      .max(255, "Title must be 255 characters or less")
+      .optional(),
+    content: z
+      .string({ message: "Content must be a string" })
+      .trim()
+      .min(1, "Content cannot be empty")
+      .max(10000, "Content must be 10000 characters or less")
+      .optional(),
+    thumbnail: z.string().trim().min(1).nullable().optional(),
+    isFeatured: z.boolean().optional(),
+    status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
+    tags: z
+      .array(z.string().trim().min(1, "Each tag must be a non-empty string"), {
+        message: "Tags must be an array of strings",
+      })
+      .optional(),
+  })
+  .strict()
+  .refine((value) => Object.keys(value).length > 0, {
+    message: "At least one post field is required",
+  });
+
 export const validatePost = (
   req: Request,
   res: Response,
@@ -109,5 +137,19 @@ export const validatePostId = (
   } catch (error: any) {
     const issue = error?.issues?.[0];
     next(createAppError(400, issue?.message || "Invalid post ID"));
+  }
+};
+
+export const validateUpdatePost = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    req.body = updatePostSchema.parse(req.body);
+    next();
+  } catch (error: any) {
+    const issue = error?.issues?.[0];
+    next(createAppError(400, issue?.message || "Invalid post update"));
   }
 };

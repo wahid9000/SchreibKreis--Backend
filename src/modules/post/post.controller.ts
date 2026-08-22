@@ -78,9 +78,51 @@ const getPostById = async (req: Request, res: Response) => {
     data: post,
   });
 };
+const updatePost = async (req: Request, res: Response) => {
+  const userRole = req.user!.role;
+  let isUserAdmin = false;
+  if (userRole === "ADMIN") {
+    isUserAdmin = true;
+  }
+  const post = await postService.updatePost(
+    req.params.id as string,
+    req.user!.id,
+    isUserAdmin,
+    req.body,
+  );
+
+  res.status(200).json({
+    success: true,
+    status: "success",
+    statusCode: 200,
+     message: "Post updated successfully",
+  });
+};
+
+const deletePost = async (req: Request, res: Response) => {
+  const userRole = req.user!.role;
+  let isUserAdmin = false;
+  if (userRole === "ADMIN") {
+    isUserAdmin = true;
+  }
+  await postService.deletePost(
+    req.params.id as string,
+    req.user!.id,
+    isUserAdmin,
+  );
+
+  res.status(200).json({
+    success: true,
+    status: "success",
+    statusCode: 200,
+    message: "Post deleted successfully",
+  });
+};
 
 export const postController = {
   createPost,
   getPosts,
   getPostById,
+  updatePost,
+  deletePost,
 };

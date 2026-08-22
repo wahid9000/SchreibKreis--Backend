@@ -6,6 +6,7 @@ import {
   validatePost,
   validatePostId,
   validatePostQuery,
+  validateUpdatePost,
 } from "./post.validator";
 
 const router = express.Router();
@@ -27,6 +28,19 @@ router.get(
   authPermission("ADMIN", "USER"),
   validatePostId,
   catchAsync(postController.getPostById),
+);
+router.patch(
+  "/:id",
+  authPermission("ADMIN", "USER"),
+  validatePostId,
+  validateUpdatePost,
+  catchAsync(postController.updatePost),
+);
+router.delete(
+  "/:id",
+  authPermission("ADMIN", "USER"),
+  validatePostId,
+  catchAsync(postController.deletePost),
 );
 
 export const postRouter: express.Router = router;

@@ -1,3 +1,4 @@
+import { is } from "zod/locales";
 import { Prisma } from "../../../prisma/generated/prisma/client";
 import { prisma } from "../../lib/prisma";
 import { createAppError } from "../../utils/AppError";
@@ -149,8 +150,66 @@ const getPostById = async (postId: string) => {
   return post;
 };
 
+type UpdatePostInput = {
+  title?: string;
+  content?: string;
+  thumbnail?: string | null;
+  isFeatured?: boolean;
+  status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+  tags?: string[];
+};
+
+const updatePost = async (
+  postId: string,
+  authorId: string,
+  isUserAdmin: boolean,
+  data: UpdatePostInput,
+) => {
+  if (!isUserAdmin) {
+    delete data.isFeatured;
+  }
+  const result = await prisma.post.updateMany({
+    where: {
+      id: postId,
+      ...(isUserAdmin ? {} : { authorId }),
+    },
+    data,
+  });
+
+  if (result.count === 0) {
+    throw createAppError(
+      404,
+      "Post not found or you are not authorized to update it",
+    );
+  }
+};
+
+const deletePost = async (
+  postId: string,
+  authorId: string,
+  isUserAdmin: boolean,
+) => {
+  const result = await prisma.post.deleteMany({
+    where: {
+      id: postId,
+      ...(isUserAdmin ? {} : { authorId }),
+    },
+  });
+
+  if (result.count === 0) {
+    throw createAppError(
+      404,
+      "Post not found or you are not authorized to delete it",
+    );
+  }
+
+  return { success: true };
+};
+
 export const postService = {
   createPost,
   getPosts,
   getPostById,
+  updatePost,
+  deletePost,
 };
