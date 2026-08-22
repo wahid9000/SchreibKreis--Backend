@@ -106,6 +106,11 @@ const getPosts = async ({
   const [result, totalItems] = await Promise.all([
     prisma.post.findMany({
       where,
+      include: {
+        _count: {
+          select: { comments: true },
+        },
+      },
       orderBy,
       ...(cursor
         ? { cursor: { id: cursor }, skip: 1 }
@@ -144,13 +149,20 @@ const getPostById = async (postId: string) => {
     include: {
       comments: {
         where: { parentId: null, status: "APPROVED" as CommentStatus },
-        orderBy: { createdAt: "asc" },  
+        orderBy: { createdAt: "desc" },
         include: {
           replies: {
-            where: { parentId: { not: null }, status: "APPROVED" as CommentStatus },
-          }
-        }
-      }
+            where: {
+              parentId: { not: null },
+              status: "APPROVED" as CommentStatus,
+            },
+            orderBy: { createdAt: "asc" },
+          },
+        },
+      },
+      _count: {
+        select: { comments: true },
+      },
     },
   });
 
