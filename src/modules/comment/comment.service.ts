@@ -71,6 +71,11 @@ const getCommentById = async (commentId: string, isUserAdmin: boolean) => {
       id: commentId,
       ...(isUserAdmin ? {} : { status: "APPROVED" as CommentStatus }),
     },
+    include: {
+      post: {
+        select: { id: true, title: true },
+      },
+    },
   });
 
   if (!comment) {
