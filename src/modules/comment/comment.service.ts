@@ -101,10 +101,12 @@ const updateComment = async (
       ? { status: data.status }
       : {}),
   };
+
+  const requiresOwnership = data.content !== undefined || !isUserAdmin;
   const result = await prisma.comment.updateMany({
     where: {
       id: commentId,
-      ...(isUserAdmin ? {} : { authorId }),
+      ...(requiresOwnership ? { authorId } : {}),
     },
     data: updateData,
   });
