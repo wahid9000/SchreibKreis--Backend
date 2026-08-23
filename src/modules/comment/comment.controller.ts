@@ -54,7 +54,6 @@ const updateComment = async (req: Request, res: Response) => {
   const comment = await commentService.updateComment(
     req.params.id as string,
     req.user!.id,
-    isAdmin(req),
     req.body,
   );
 
@@ -63,6 +62,21 @@ const updateComment = async (req: Request, res: Response) => {
     status: "success",
     statusCode: 200,
     message: "Comment updated successfully",
+  });
+};
+
+const moderateComment = async (req: Request, res: Response) => {
+  const comment = await commentService.moderateComment(
+    req.params.id as string,
+    isAdmin(req),
+    req.body,
+  );
+
+  res.status(200).json({
+    success: true,
+    status: "success",
+    statusCode: 200,
+    message: "Comment status updated successfully",
   });
 };
 
@@ -86,5 +100,6 @@ export const commentController = {
   getCommentsByPost,
   getCommentById,
   updateComment,
+  moderateComment,
   deleteComment,
 };

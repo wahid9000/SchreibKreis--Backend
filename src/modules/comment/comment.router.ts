@@ -6,6 +6,7 @@ import {
   validateCommentId,
   validateCommentQuery,
   validateCreateComment,
+  validateModerateComment,
   validatePostId,
   validateUpdateComment,
 } from "./comment.validator";
@@ -37,6 +38,13 @@ router.patch(
   validateCommentId,
   validateUpdateComment,
   catchAsync(commentController.updateComment),
+);
+router.patch(
+  "/moderate/:id",
+  authPermission("ADMIN"),
+  validateCommentId,
+  validateModerateComment,
+  catchAsync(commentController.moderateComment),
 );
 router.delete(
   "/:id",

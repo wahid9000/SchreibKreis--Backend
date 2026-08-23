@@ -29,16 +29,33 @@ const createCommentSchema = z
 const updateCommentSchema = z
   .object({
     content: z
-      .string({ message: "Content must be a string" })
+      .string({ message: "Comment must be a string" })
       .trim()
       .min(1, "Comment cannot be empty")
       .max(2000, "Comment must be 2000 characters or less")
       .optional(),
-    status: z.enum(["APPROVED", "REJECTED"]).optional(),
+  })
+  .strict();
+
+const moderateCommentSchema = z
+  .object({
+    status: z.enum(["APPROVED", "REJECTED"]),
+    rejectReason: z
+      .string({ message: "Reject reason must be a string" })
+      .trim()
+      .min(1, "Reject reason cannot be empty")
+      .max(2000, "Reject reason must be 2000 characters or less")
+      .optional(),
   })
   .strict()
-  .refine((value) => Object.keys(value).length > 0, {
-    message: "At least one comment field is required",
+  .superRefine((value, ctx) => {
+    if (value.status === "REJECTED" && value.rejectReason === undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["rejectReason"],
+        message: "Reject reason is required when rejecting a comment",
+      });
+    }
   });
 
 const commentQuerySchema = z.object({
@@ -125,5 +142,19 @@ export const validateCommentQuery = (
   } catch (error: any) {
     const issue = error?.issues?.[0];
     next(createAppError(400, issue?.message || "Invalid comment query"));
+  }
+};
+
+export const validateModerateComment = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    req.body = moderateCommentSchema.parse(req.body);
+    next();
+  } catch (error: any) {
+    const issue = error?.issues?.[0];
+    next(createAppError(400, issue?.message || "Invalid moderation payload"));
   }
 };

@@ -7,6 +7,7 @@ model Comment {
     id      String        @id @default(uuid())
     content String
     status  CommentStatus @default(APPROVED)
+    rejectReason String?
 
     postId   String
     authorId String // Stores the Better Auth User ID

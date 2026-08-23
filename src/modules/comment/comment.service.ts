@@ -88,25 +88,45 @@ const getCommentById = async (commentId: string, isUserAdmin: boolean) => {
 const updateComment = async (
   commentId: string,
   authorId: string,
-  isUserAdmin: boolean,
   data: { content?: string; status?: CommentStatus },
 ) => {
-  if (!isUserAdmin && data.status !== undefined) {
-    throw createAppError(403, "Only admins can change comment status");
-  }
-
   const updateData = {
     ...(data.content === undefined ? {} : { content: data.content }),
-    ...(isUserAdmin && data.status !== undefined
-      ? { status: data.status }
-      : {}),
   };
 
-  const requiresOwnership = data.content !== undefined || !isUserAdmin;
   const result = await prisma.comment.updateMany({
     where: {
       id: commentId,
-      ...(requiresOwnership ? { authorId } : {}),
+      authorId: authorId,
+    },
+    data: updateData,
+  });
+
+  if (result.count === 0) {
+    throw createAppError(
+      404,
+      "Comment not found or you are not authorized to update it",
+    );
+  }
+
+  return { success: true };
+};
+
+const moderateComment = async (
+  commentId: string,
+  isUserAdmin: boolean,
+  data: { status: CommentStatus; rejectReason?: string },
+) => {
+  const updateData = {
+    status: data.status as CommentStatus,
+    ...(data.rejectReason === undefined
+      ? {}
+      : { rejectReason: data.rejectReason }),
+  };
+
+  const result = await prisma.comment.updateMany({
+    where: {
+      id: commentId,
     },
     data: updateData,
   });
@@ -148,5 +168,6 @@ export const commentService = {
   getCommentsByPost,
   getCommentById,
   updateComment,
+  moderateComment,
   deleteComment,
 };
