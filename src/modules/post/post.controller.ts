@@ -78,6 +78,31 @@ const getPostById = async (req: Request, res: Response) => {
     data: post,
   });
 };
+
+const getOwnPosts = async (req: Request, res: Response) => {
+  const authorId = req.user!.id;
+  const { search, cursor, page, limit } = req.query;
+  const searchQuery = typeof search === "string" ? search : undefined;
+  const pageQuery = typeof page === "string" ? Number(page) : 1;
+  const limitQuery = typeof limit === "string" ? Number(limit) : 10;
+  const cursorQuery = typeof cursor === "string" ? cursor : undefined;
+
+  const posts = await postService.getOwnPosts({
+    authorId,
+    search: searchQuery,
+    cursor: cursorQuery,
+    page: pageQuery,
+    limit: limitQuery,
+  });
+
+  res.status(200).json({
+    success: true,
+    status: "success",
+    statusCode: 200,
+    data: posts,
+  });
+};
+
 const updatePost = async (req: Request, res: Response) => {
   const userRole = req.user!.role;
   let isUserAdmin = false;
@@ -95,7 +120,7 @@ const updatePost = async (req: Request, res: Response) => {
     success: true,
     status: "success",
     statusCode: 200,
-     message: "Post updated successfully",
+    message: "Post updated successfully",
   });
 };
 
@@ -123,6 +148,7 @@ export const postController = {
   createPost,
   getPosts,
   getPostById,
+  getOwnPosts,
   updatePost,
   deletePost,
 };

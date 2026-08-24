@@ -3,6 +3,7 @@ import { postController } from "./post.controller";
 import { catchAsync } from "../../middleware/errorHandler";
 import { authPermission } from "../../middleware/authPermission";
 import {
+  validateOwnPostQuery,
   validatePost,
   validatePostId,
   validatePostQuery,
@@ -28,6 +29,12 @@ router.get(
   authPermission("ADMIN", "USER"),
   validatePostId,
   catchAsync(postController.getPostById),
+);
+router.get(
+  "/users/me",
+  authPermission("ADMIN", "USER"),
+  validateOwnPostQuery,
+  catchAsync(postController.getOwnPosts),
 );
 router.patch(
   "/:id",

@@ -180,6 +180,81 @@ const getPostById = async (postId: string) => {
   return post;
 };
 
+const getOwnPosts = async ({
+  authorId,
+  search,
+  cursor,
+  page = 1,
+  limit = 10,
+}: {
+  authorId: string;
+  search?: string | undefined;
+  cursor?: string | undefined;
+  page?: number | undefined;
+  limit?: number | undefined;
+}) => {
+  const andConditions: Prisma.PostWhereInput[] = [];
+
+  if (search) {
+    andConditions.push({
+      OR: [
+        {
+          title: {
+            contains: search as string,
+            mode: "insensitive",
+          },
+        },
+        {
+          content: {
+            contains: search as string,
+            mode: "insensitive",
+          },
+        },
+      ],
+    });
+  }
+
+  const where = {
+    authorId: authorId,
+    AND: andConditions,
+  };
+
+  const [result, totalItems] = await Promise.all([
+    prisma.post.findMany({
+      where,
+      include: {
+        _count: {
+          select: { comments: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      ...(cursor
+        ? { cursor: { id: cursor }, skip: 1 }
+        : { skip: (page - 1) * limit }),
+      take: limit + 1,
+    }),
+    prisma.post.count({ where }),
+  ]);
+
+  const hasNextPage = result.length > limit;
+  const posts = hasNextPage ? result.slice(0, limit) : result;
+  const nextCursor = hasNextPage ? (posts[posts.length - 1]?.id ?? null) : null;
+
+  return {
+    posts,
+    pagination: {
+      page: cursor ? null : page,
+      limit,
+      returnedCount: posts.length,
+      totalItems,
+      totalPages: Math.ceil(totalItems / limit),
+      currentCursor: cursor ?? null,
+      hasNextPage,
+      nextCursor,
+    },
+  };
+};
+
 type UpdatePostInput = {
   title?: string;
   content?: string;
@@ -240,6 +315,7 @@ export const postService = {
   createPost,
   getPosts,
   getPostById,
+  getOwnPosts,
   updatePost,
   deletePost,
 };

@@ -55,6 +55,23 @@ const postQuerySchema = z.object({
   sortOrder: z.enum(["asc", "desc"]).optional(),
 });
 
+const ownPostQuerySchema = z.object({
+  search: z.string().trim().optional(),
+  cursor: z.string().trim().min(1).optional(),
+  page: z
+    .string()
+    .regex(/^\d+$/, "Page must be a positive integer")
+    .transform(Number)
+    .pipe(z.number().int().min(1, "Page must be at least 1"))
+    .optional(),
+  limit: z
+    .string()
+    .regex(/^\d+$/, "Limit must be a positive integer")
+    .transform(Number)
+    .pipe(z.number().int().min(1).max(50, "Limit cannot exceed 50"))
+    .optional(),
+});
+
 const postIdSchema = z.object({
   id: z.string().uuid("Invalid post ID"),
 });
@@ -122,6 +139,20 @@ export const validatePostQuery = (
   } catch (error: any) {
     const issue = error?.issues?.[0];
     next(createAppError(400, issue?.message || "Invalid post query"));
+  }
+};
+
+export const validateOwnPostQuery = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    ownPostQuerySchema.parse(req.query);
+    next();
+  } catch (error: any) {
+    const issue = error?.issues?.[0];
+    next(createAppError(400, issue?.message || "Invalid own post query"));
   }
 };
 
