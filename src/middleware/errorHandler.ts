@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 import { createAppError } from "../utils/AppError";
+import { Prisma } from "../../prisma/generated/prisma/client";
 
 const handleZodError = (err: ZodError) => {
   const issues = err.issues.map((i) => `${i.path.join(".")}: ${i.message}`);
@@ -58,12 +59,25 @@ export const globalErrorHandler = (
 
   let error = err;
 
-  if (err instanceof ZodError) error = handleZodError(err);
-  else if (err.code === "P2002")
-    error = handlePrismaUniqueError(err); // Prisma unique constraint
-  else if (err.code === "P2025") //prisma.post.findUniqueOrThrow or similar throws P2025
-    error = createAppError(404, "Requested resource not found");
-  else if (err instanceof SyntaxError && "body" in err)
+  if (err instanceof ZodError) {
+    error = handleZodError(err);
+  } else if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    if (err.code === "P2025") {
+      error = createAppError(400, "Requested resource not found");
+    } else if (err.code === "P2002") {
+      error = handlePrismaUniqueError(err); // Prisma unique constraint
+    } else if (err.code === "P2003") {
+      error = createAppError(409, "Foreign key constraint failed");
+    }
+  } else if (err instanceof Prisma.PrismaClientUnknownRequestError) {
+    error = createAppError(500, "Error occured during query execution");
+  } else if (err instanceof Prisma.PrismaClientInitializationError) {
+    if(err.errorCode === "P1000"){
+      createAppError(401, "Authentication failed. Please check your credentials.")
+    } else if(err.errorCode === "P1001"){
+      createAppError(400, "Cannot reach database server.")
+    }
+  } else if (err instanceof SyntaxError && "body" in err)
     error = createAppError(400, "Invalid JSON in request body");
 
   if (process.env.NODE_ENV === "development") {
