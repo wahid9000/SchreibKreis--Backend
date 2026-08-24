@@ -26,6 +26,15 @@ export const authPermission = (...allowedRoles: string[]) => {
         });
       }
 
+        if (session?.user.status !== 'ACTIVE') {
+        return res.status(401).json({
+          success: false,
+          status: "fail",
+          statusCode: 401,
+          message: "User status is not active. Please contact support",
+        });
+      }
+
       const userRole = String(session.user.role || "USER").toUpperCase();
       const roles = allowedRoles.map((role) => role.toUpperCase());
 
