@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 import { createAppError } from "../../utils/AppError";
 
-const postSchema = z.object({
+export const postSchema = z.object({
   title: z
     .string({ message: "Title is required and must be a string" })
     .trim()
@@ -16,10 +16,8 @@ const postSchema = z.object({
   thumbnail: z
     .string()
     .trim()
-    .min(1, "thumbnail must be a non-empty string")
     .optional()
-    .or(z.literal(""))
-    .transform((value) => (value ? value : undefined)),
+    .transform((val) => (val && val.length > 0 ? val : undefined)),
   isFeatured: z.boolean().optional().default(false),
   status: z
     .enum(["DRAFT", "PUBLISHED", "ARCHIVED"])
@@ -33,7 +31,7 @@ const postSchema = z.object({
     .default([]),
 });
 
-const postQuerySchema = z.object({
+export const postQuerySchema = z.object({
   search: z.string().trim().optional(),
   tags: z.string().optional(),
   isFeatured: z.enum(["true", "false"]).optional(),
@@ -55,7 +53,7 @@ const postQuerySchema = z.object({
   sortOrder: z.enum(["asc", "desc"]).optional(),
 });
 
-const ownPostQuerySchema = z.object({
+export const ownPostQuerySchema = z.object({
   search: z.string().trim().optional(),
   cursor: z.string().trim().min(1).optional(),
   page: z
@@ -72,11 +70,11 @@ const ownPostQuerySchema = z.object({
     .optional(),
 });
 
-const postIdSchema = z.object({
+export const postIdSchema = z.object({
   id: z.string().uuid("Invalid post ID"),
 });
 
-const updatePostSchema = z
+export const updatePostSchema = z
   .object({
     title: z
       .string({ message: "Title must be a string" })
@@ -103,84 +101,3 @@ const updatePostSchema = z
   .refine((value) => Object.keys(value).length > 0, {
     message: "At least one post field is required",
   });
-
-export const validatePost = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const parsed = postSchema.parse(req.body);
-    req.body = parsed;
-    next();
-  } catch (error: any) {
-    const issue = error?.issues?.[0];
-
-    let message = "Invalid post payload";
-
-    if (issue?.path?.includes("tags")) {
-      message = "Tags must be an array of strings";
-    } else if (issue?.message) {
-      message = issue.message;
-    }
-
-    return next(createAppError(400, message));
-  }
-};
-
-export const validatePostQuery = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    postQuerySchema.parse(req.query);
-    next();
-  } catch (error: any) {
-    const issue = error?.issues?.[0];
-    next(createAppError(400, issue?.message || "Invalid post query"));
-  }
-};
-
-export const validateOwnPostQuery = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    ownPostQuerySchema.parse(req.query);
-    next();
-  } catch (error: any) {
-    const issue = error?.issues?.[0];
-    next(createAppError(400, issue?.message || "Invalid own post query"));
-  }
-};
-
-export const validatePostId = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const parsed = postIdSchema.parse(req.params);
-    req.params.id = parsed.id;
-    next();
-  } catch (error: any) {
-    const issue = error?.issues?.[0];
-    next(createAppError(400, issue?.message || "Invalid post ID"));
-  }
-};
-
-export const validateUpdatePost = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    req.body = updatePostSchema.parse(req.body);
-    next();
-  } catch (error: any) {
-    const issue = error?.issues?.[0];
-    next(createAppError(400, issue?.message || "Invalid post update"));
-  }
-};

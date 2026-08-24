@@ -1,16 +1,14 @@
-import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
-import { createAppError } from "../../utils/AppError";
 
-const commentIdSchema = z.object({
+export const commentIdSchema = z.object({
   id: z.string().uuid("Invalid comment ID"),
 });
 
-const postIdSchema = z.object({
+export const postIdSchema = z.object({
   postId: z.string().uuid("Invalid post ID"),
 });
 
-const createCommentSchema = z
+export const createCommentSchema = z
   .object({
     postId: z.string().uuid("Invalid post ID"),
     content: z
@@ -26,7 +24,7 @@ const createCommentSchema = z
   })
   .strict();
 
-const updateCommentSchema = z
+export const updateCommentSchema = z
   .object({
     content: z
       .string({ message: "Comment must be a string" })
@@ -37,7 +35,7 @@ const updateCommentSchema = z
   })
   .strict();
 
-const moderateCommentSchema = z
+export const moderateCommentSchema = z
   .object({
     status: z.enum(["APPROVED", "REJECTED"]),
     rejectReason: z
@@ -65,7 +63,7 @@ const moderateCommentSchema = z
     }
   });
 
-const commentQuerySchema = z.object({
+export const commentQuerySchema = z.object({
   page: z
     .string()
     .regex(/^\d+$/, "Page must be a positive integer")
@@ -79,89 +77,3 @@ const commentQuerySchema = z.object({
     .pipe(z.number().int().min(1).max(50, "Limit cannot exceed 50"))
     .optional(),
 });
-
-export const validateCreateComment = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    req.body = createCommentSchema.parse(req.body);
-    next();
-  } catch (error: any) {
-    const issue = error?.issues?.[0];
-    next(createAppError(400, issue?.message || "Invalid comment payload"));
-  }
-};
-
-export const validateUpdateComment = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    req.body = updateCommentSchema.parse(req.body);
-    next();
-  } catch (error: any) {
-    const issue = error?.issues?.[0];
-    next(createAppError(400, issue?.message || "Invalid comment update"));
-  }
-};
-
-export const validateCommentId = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const parsed = commentIdSchema.parse(req.params);
-    req.params.id = parsed.id;
-    next();
-  } catch (error: any) {
-    const issue = error?.issues?.[0];
-    next(createAppError(400, issue?.message || "Invalid comment ID"));
-  }
-};
-
-export const validatePostId = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const parsed = postIdSchema.parse(req.params);
-    req.params.postId = parsed.postId;
-    next();
-  } catch (error: any) {
-    const issue = error?.issues?.[0];
-    next(createAppError(400, issue?.message || "Invalid post ID"));
-  }
-};
-
-export const validateCommentQuery = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    commentQuerySchema.parse(req.query);
-    next();
-  } catch (error: any) {
-    const issue = error?.issues?.[0];
-    next(createAppError(400, issue?.message || "Invalid comment query"));
-  }
-};
-
-export const validateModerateComment = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    req.body = moderateCommentSchema.parse(req.body);
-    next();
-  } catch (error: any) {
-    const issue = error?.issues?.[0];
-    next(createAppError(400, issue?.message || "Invalid moderation payload"));
-  }
-};

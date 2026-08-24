@@ -54,7 +54,7 @@ async function main() {
 
     process.on("uncaughtException", (error) => {
       console.error("Uncaught Exception:", error);
-      shutdown("uncaughtException");
+      process.exit(1);
     });
   } catch (error) {
     console.error("Error connecting to the database:", error);

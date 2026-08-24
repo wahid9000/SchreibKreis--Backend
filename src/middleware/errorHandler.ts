@@ -1,12 +1,26 @@
 import { NextFunction, Request, Response } from "express";
-import { AppError } from "../utils/AppError";
+import { ZodError } from "zod";
+import { createAppError } from "../utils/AppError";
+
+const handleZodError = (err: ZodError) => {
+  const issues = err.issues.map((i) => `${i.path.join(".")}: ${i.message}`);
+  return createAppError(400, `Validation failed — ${issues.join("; ")}`);
+};
+
+const handlePrismaUniqueError = (err: any) => {
+  const field = err.meta?.target?.[0] || "field";
+  return createAppError(
+    409,
+    `Duplicate value for ${field}. Please use another.`,
+  );
+};
 
 const sendErrorDev = (err: any, res: Response) => {
   res.status(err.statusCode || 500).json({
     success: false,
     status: err.status || "error",
     statusCode: err.statusCode || 500,
-    message: err.message || "Something went wrong",
+    message: err.message,
     stack: err.stack,
     error: err,
   });
@@ -14,14 +28,16 @@ const sendErrorDev = (err: any, res: Response) => {
 
 const sendErrorProd = (err: any, res: Response) => {
   if (err.isOperational) {
-    res.status(err.statusCode || 500).json({
+    res.status(err.statusCode).json({
       success: false,
-      status: err.status || "error",
-      statusCode: err.statusCode || 500,
-      message: err.message || "Something went wrong",
+      status: err.status,
+      statusCode: err.statusCode,
+      message: err.message,
     });
     return;
   }
+
+  // TODO: (need add Pino, Sentry Logger here)
 
   res.status(500).json({
     success: false,
@@ -40,12 +56,22 @@ export const globalErrorHandler = (
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
 
+  let error = err;
+
+  if (err instanceof ZodError) error = handleZodError(err);
+  else if (err.code === "P2002")
+    error = handlePrismaUniqueError(err); // Prisma unique constraint
+  else if (err.code === "P2025") //prisma.post.findUniqueOrThrow or similar throws P2025
+    error = createAppError(404, "Requested resource not found");
+  else if (err instanceof SyntaxError && "body" in err)
+    error = createAppError(400, "Invalid JSON in request body");
+
   if (process.env.NODE_ENV === "development") {
-    sendErrorDev(err, res);
+    sendErrorDev(error, res);
     return;
   }
 
-  sendErrorProd(err, res);
+  sendErrorProd(error, res);
 };
 
 export const catchAsync = (
