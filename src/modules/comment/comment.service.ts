@@ -118,7 +118,7 @@ const moderateComment = async (
   data: { status: CommentStatus; rejectReason?: string },
 ) => {
   const updateData = {
-    status: data.status as CommentStatus,
+    status: data.status,
     ...(data.rejectReason === undefined
       ? {}
       : { rejectReason: data.rejectReason }),
@@ -127,14 +127,24 @@ const moderateComment = async (
   const result = await prisma.comment.updateMany({
     where: {
       id: commentId,
+      status: { not: data.status },
     },
     data: updateData,
   });
 
   if (result.count === 0) {
+    const existing = await prisma.comment.findUnique({
+      where: { id: commentId },
+      select: { status: true },
+    });
+
+    if (!existing) {
+      throw createAppError(404, "Comment not found");
+    }
+
     throw createAppError(
-      404,
-      "Comment not found or you are not authorized to update it",
+      409,
+      `This comment is already ${existing.status.toLowerCase()}`,
     );
   }
 

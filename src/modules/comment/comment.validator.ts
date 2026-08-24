@@ -56,6 +56,13 @@ const moderateCommentSchema = z
         message: "Reject reason is required when rejecting a comment",
       });
     }
+    if (value.status === "APPROVED" && value.rejectReason !== undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["rejectReason"],
+        message: "Reject reason must not be provided when approving a comment",
+      });
+    }
   });
 
 const commentQuerySchema = z.object({
