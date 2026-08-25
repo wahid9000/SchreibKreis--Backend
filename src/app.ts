@@ -7,6 +7,7 @@ import { auth } from "./lib/auth";
 import cors from "cors";
 import { analyticsRouter } from "./modules/analytics/analytics.router";
 import { createAppError } from "./utils/AppError";
+import { authLimiter } from "./middleware/rateLimiter";
 
 const app: express.Application = express();
 app.use(express.json({ limit: "100kb" }));
@@ -18,7 +19,7 @@ app.use(
   }),
 );
 
-app.all("/api/auth/*splat", toNodeHandler(auth));
+app.all("/api/auth/*splat", authLimiter, toNodeHandler(auth));
 
 app.use("/api/posts", postRouter);
 app.use("/api/comments", commentRouter);
