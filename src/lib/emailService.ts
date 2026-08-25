@@ -1,11 +1,16 @@
 import nodemailer from "nodemailer";
-import { buildVerificationEmail, buildWelcomeEmail } from "./mailTemplates";
+import {
+  buildDigestEmail,
+  buildVerificationEmail,
+  buildWelcomeEmail,
+  DigestPost,
+} from "./mailTemplates";
 
 const defaultAppName = process.env.APP_NAME || "Schreibkreis";
 const senderName = process.env.EMAIL_FROM_NAME || defaultAppName;
 const senderEmail = process.env.EMAIL_FROM;
 
-const transporter = nodemailer.createTransport({
+export const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.gmail.com",
   port: Number(process.env.SMTP_PORT || 587),
   secure: process.env.SMTP_SECURE === "true",
@@ -21,6 +26,12 @@ export type SendVerificationEmailOptions = {
   appName?: string;
 };
 
+export type SendDigestMailOptions = {
+  users: Array<{ email: string; name: string | null }>;
+  posts: DigestPost[];
+  appName?: string;
+};
+
 export type SendWelcomeEmailOptions = {
   to: string;
   appName?: string;
@@ -28,7 +39,6 @@ export type SendWelcomeEmailOptions = {
 };
 
 export const emailService = {
-
   async sendVerificationEmail({
     to,
     url,
@@ -88,5 +98,48 @@ export const emailService = {
       text: template.text,
       html: template.html,
     });
+  },
+
+  async sendDigestMail({
+    users,
+    posts,
+    appName = defaultAppName,
+  }: SendDigestMailOptions) {
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPassword = process.env.SMTP_PASSWORD || process.env.SMTP_PASS;
+
+    if (!smtpUser || !smtpPassword) {
+      console.warn(
+        "SMTP credentials are not configured. Digest emails were not sent.",
+      );
+      return { sent: 0, failed: users.length, totalUsers: users.length };
+    }
+
+    let sent = 0;
+    let failed = 0;
+
+    for (const user of users) {
+      try {
+        const template = buildDigestEmail({
+          appName,
+          name: user.name,
+          posts,
+        });
+
+        await transporter.sendMail({
+          from: `"${senderName}" <${senderEmail}>`,
+          to: user.email,
+          subject: template.subject,
+          text: template.text,
+          html: template.html,
+        });
+        sent++;
+      } catch (error) {
+        console.error(`Failed to send digest to ${user.email}:`, error);
+        failed++;
+      }
+    }
+
+    return { sent, failed, totalUsers: users.length };
   },
 };

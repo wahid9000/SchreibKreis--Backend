@@ -8,6 +8,7 @@ import cors from "cors";
 import { analyticsRouter } from "./modules/analytics/analytics.router";
 import { createAppError } from "./utils/AppError";
 import { authLimiter } from "./middleware/rateLimiter";
+import { emailDigestRouter } from "./modules/emailDigest/emailDigest.router";
 
 const app: express.Application = express();
 app.use(express.json({ limit: "100kb" }));
@@ -24,6 +25,7 @@ app.all("/api/auth/*splat", authLimiter, toNodeHandler(auth));
 app.use("/api/posts", postRouter);
 app.use("/api/comments", commentRouter);
 app.use("/api/analytics", analyticsRouter);
+app.use("/api/emailDigest", emailDigestRouter);
 
 app.use((req, res, next) => {
   next(createAppError(404, `Route ${req.originalUrl} not found`));

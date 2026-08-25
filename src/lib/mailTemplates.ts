@@ -10,6 +10,71 @@ export type WelcomeEmailOptions = {
   brandColor?: string;
 };
 
+export type DigestPost = {
+  title: string;
+  views: number;
+  createdAt: Date;
+  thumbnail: string | null;
+};
+
+export type DigestEmailOptions = {
+  appName: string;
+  name: string | null;
+  posts: DigestPost[];
+};
+
+export function buildDigestEmail({ appName, name, posts }: DigestEmailOptions) {
+  const greeting = name ? `Hi ${name},` : "Hi there,";
+  const subject = `${appName} weekly digest`;
+  const postsHtml = posts
+    .map(
+      (post, index) => `
+        <tr>
+          <td style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-size: 18px; font-weight: 700; color: #111827;">
+              ${index + 1}. ${post.title}
+            </div>
+            <div style="margin-top: 4px; font-size: 13px; color: #6b7280;">
+              ${post.views} views
+            </div>
+          </td>
+        </tr>
+      `,
+    )
+    .join("");
+
+  const text = [
+    greeting,
+    "",
+    `Here are the most popular posts from the last 7 days on ${appName}:`,
+    "",
+    ...posts.map(
+      (post, index) => `${index + 1}. ${post.title} (${post.views} views)`,
+    ),
+    "",
+    `Thanks,\n${appName}`,
+  ].join("\n");
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827; max-width: 600px; margin: 0 auto; padding: 24px;">
+      <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; background: #ffffff;">
+        <h2 style="margin: 0 0 12px; color: #111827;">${greeting}</h2>
+        <p style="margin: 0 0 20px; color: #374151;">
+          Here are the most popular posts from the last 7 days on <strong>${appName}</strong>:
+        </p>
+        <table style="width: 100%; border-collapse: collapse;">
+          ${postsHtml}
+        </table>
+        <p style="margin: 24px 0 0; font-size: 12px; color: #6b7280;">
+          You are receiving this because you subscribed to weekly digests.
+        </p>
+      </div>
+    </div>
+  `;
+
+  return { subject, text, html };
+}
+
 export function buildVerificationEmail({
   appName,
   url,

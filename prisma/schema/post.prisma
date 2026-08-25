@@ -10,7 +10,7 @@ model Post {
     content    String     @db.Text
     thumbnail  String?
     isFeatured Boolean    @default(false)
-    status     PostStatus @default(DRAFT)
+    status     PostStatus @default(PUBLISHED)
     tags       String[]
     views      Int        @default(0)
 
