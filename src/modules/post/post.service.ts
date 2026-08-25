@@ -21,7 +21,7 @@ const createPost = async (data: CreatePostInput) => {
       authorId: data.authorId,
       thumbnail: data.thumbnail ?? null,
       isFeatured: data.isFeatured ?? false,
-      status: data.status ?? "DRAFT",
+      status: data.status ?? "PUBLISHED",
       tags: data.tags ?? [],
     },
   });

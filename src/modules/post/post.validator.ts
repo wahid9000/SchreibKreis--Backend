@@ -1,6 +1,4 @@
-import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
-import { createAppError } from "../../utils/AppError";
 
 export const postSchema = z.object({
   title: z
@@ -22,7 +20,7 @@ export const postSchema = z.object({
   status: z
     .enum(["DRAFT", "PUBLISHED", "ARCHIVED"])
     .optional()
-    .default("DRAFT"),
+    .default("PUBLISHED"),
   tags: z
     .array(z.string().trim().min(1, "Each tag must be a non-empty string"), {
       message: "Tags must be an array of strings",
