@@ -1,5 +1,5 @@
 import { is } from "zod/locales";
-import { CommentStatus, Prisma } from "../../../prisma/generated/prisma/client";
+import { CommentStatus, Prisma } from "../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
 import { createAppError } from "../../utils/AppError";
 

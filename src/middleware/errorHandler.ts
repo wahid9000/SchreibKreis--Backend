@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 import { createAppError } from "../utils/AppError";
-import { Prisma } from "../../prisma/generated/prisma/client";
+import { Prisma } from "../generated/prisma/client";
 
 const handleZodError = (err: ZodError) => {
   const issues = err.issues.map((i) => `${i.path.join(".")}: ${i.message}`);
@@ -72,10 +72,13 @@ export const globalErrorHandler = (
   } else if (err instanceof Prisma.PrismaClientUnknownRequestError) {
     error = createAppError(500, "Error occured during query execution");
   } else if (err instanceof Prisma.PrismaClientInitializationError) {
-    if(err.errorCode === "P1000"){
-      createAppError(401, "Authentication failed. Please check your credentials.")
-    } else if(err.errorCode === "P1001"){
-      createAppError(400, "Cannot reach database server.")
+    if (err.errorCode === "P1000") {
+      createAppError(
+        401,
+        "Authentication failed. Please check your credentials.",
+      );
+    } else if (err.errorCode === "P1001") {
+      createAppError(400, "Cannot reach database server.");
     }
   } else if (err instanceof SyntaxError && "body" in err)
     error = createAppError(400, "Invalid JSON in request body");

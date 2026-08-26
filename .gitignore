@@ -1,6 +1,8 @@
 # Dependencies
 node_modules
-prisma/generated/prisma
+prisma/generated
+src/generated
+src/generated/prisma
 
 # Local Environment Variables
 .env
@@ -24,3 +26,4 @@ build/
 pnpm-debug.log*
 .DS_Store
 Thumbs.db
+.vercel
