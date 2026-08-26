@@ -1,6 +1,6 @@
-# Schreibkreis Blog API
+# Schreibkreis API
 
-A production-minded blog backend built with TypeScript and Express. The project focuses on clean API design, reliable error handling, secure authentication, and automation-ready workflows.
+A production-minded blog backend built with TypeScript and Express. The project focuses on clean API design and logic, reliable error handling, secure authentication, and automation-ready workflows.
 
 ## Highlights
 
