@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { emailService } from "./emailService";
 import { prisma } from "./prisma";
+import { oAuthProxy } from "better-auth/plugins";
 
 const appName = process.env.APP_NAME || "Schreibkreis";
 
@@ -9,7 +10,9 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
-  trustedOrigin: process.env.APP_URL || "http://localhost:5000",
+
+  baseURL: process.env.FRONTEND_URL,
+  trustedOrigins: [process.env.FRONTEND_URL!],
   user: {
     additionalFields: {
       role: {
@@ -68,4 +71,28 @@ export const auth = betterAuth({
       },
     },
   },
+  advanced: {
+    cookies: {
+      session_token: {
+        name: "session_token", // Force this exact name
+        attributes: {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none",
+          partitioned: true,
+        },
+      },
+      state: {
+        name: "session_token", // Force this exact name
+        attributes: {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none",
+          partitioned: true,
+        },
+      },
+    },
+  },
+
+  plugins: [oAuthProxy()],
 });
