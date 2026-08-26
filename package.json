@@ -10,7 +10,7 @@
     "build": "prisma generate && tsc && node scripts/fix-imports.js",
     "build:tsup": "tsup",
     "seed:admin": "tsx src/scripts/seedAdmin.ts",
-    "start": "node dist/src/server.js"
+    "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",

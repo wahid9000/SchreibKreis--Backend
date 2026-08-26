@@ -1,4 +1,4 @@
-import express from "express";
+import express, { NextFunction } from "express";
 import { postRouter } from "./modules/post/post.router";
 import { commentRouter } from "./modules/comment/comment.router";
 import { globalErrorHandler } from "./middleware/errorHandler";
@@ -26,6 +26,12 @@ app.use("/api/posts", postRouter);
 app.use("/api/comments", commentRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/emailDigest", emailDigestRouter);
+
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    message: "Blog API is running",
+  });
+});
 
 app.use((req, res, next) => {
   next(createAppError(404, `Route ${req.originalUrl} not found`));
