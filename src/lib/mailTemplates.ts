@@ -174,7 +174,7 @@ export function buildWelcomeEmail({
 
         <p style="margin: 0 0 20px;">
           <a
-            href="${process.env.APP_URL || "http://localhost:5000"}"
+            href="${process.env.APP_URL || "http://localhost:3000"}"
             style="display: inline-block; background: ${brandColor}; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 600;"
           >
             Go to ${appName}

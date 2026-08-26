@@ -23,7 +23,7 @@ export async function seedAdmin() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Origin: process.env.BETTER_AUTH_URL || "http://localhost:5000",
+          Origin: process.env.BETTER_AUTH_URL || "http://localhost:3000",
         },
         body: JSON.stringify(adminData),
       },
