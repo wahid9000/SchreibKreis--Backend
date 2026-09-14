@@ -11,6 +11,7 @@ import { authLimiter } from "./middleware/rateLimiter";
 import { emailDigestRouter } from "./modules/emailDigest/emailDigest.router";
 
 const app: express.Application = express();
+app.set("trust proxy", 1);
 app.use(express.json({ limit: "100kb" }));
 
 app.use(

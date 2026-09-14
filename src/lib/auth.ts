@@ -77,13 +77,13 @@ export const auth = betterAuth({
           partitioned: true,
         },
       },
-
       state: {
         name: "oauth_state",
         attributes: {
           httpOnly: true,
           secure: true,
-          sameSite: "lax",
+          sameSite: "none",
+          partitioned: true,
         },
       },
     },
