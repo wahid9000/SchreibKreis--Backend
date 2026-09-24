@@ -110,6 +110,12 @@ const getPosts = async ({
         _count: {
           select: { comments: true },
         },
+        author: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
       orderBy,
       ...(cursor

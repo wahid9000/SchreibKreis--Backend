@@ -15,6 +15,7 @@ model Post {
   views      Int        @default(0)
 
   authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
