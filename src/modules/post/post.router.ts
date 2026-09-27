@@ -23,8 +23,6 @@ router.post(
 );
 router.get(
   "/",
-  publicLimiter,
-  authPermission("ADMIN", "USER"),
   zodValidate(postQuerySchema, "query"),
   catchAsync(postController.getPosts),
 );
