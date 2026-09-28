@@ -22,7 +22,7 @@ app.use(
   }),
 );
 
-app.all("/api/auth/*splat", toNodeHandler(auth));
+app.all("/api/auth/*splat", authLimiter, toNodeHandler(auth));
 
 app.use("/api/posts", postRouter);
 app.use("/api/comments", commentRouter);
