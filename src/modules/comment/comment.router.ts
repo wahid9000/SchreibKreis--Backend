@@ -41,7 +41,7 @@ router.patch(
   "/:id",
   writeLimiter,
   authPermission("ADMIN", "USER"),
-  zodValidate(commentIdSchema),
+  zodValidate(commentIdSchema, "params"),
   zodValidate(updateCommentSchema),
   catchAsync(commentController.updateComment),
 );
