@@ -9,6 +9,7 @@ import { analyticsRouter } from "./modules/analytics/analytics.router";
 import { createAppError } from "./utils/AppError";
 import { authLimiter } from "./middleware/rateLimiter";
 import { emailDigestRouter } from "./modules/emailDigest/emailDigest.router";
+import { userRouter } from "./modules/user/user.router";
 
 const app: express.Application = express();
 app.set("trust proxy", 1);
@@ -27,6 +28,7 @@ app.use("/api/posts", postRouter);
 app.use("/api/comments", commentRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/emailDigest", emailDigestRouter);
+app.use("/api/users", userRouter);
 
 app.get("/", (_req, res) => {
   res.status(200).json({
